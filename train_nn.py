@@ -1,6 +1,6 @@
 import classifier
 
-X, Y= classifier.get_data_target()
+X, Y, X_test, Y_test = classifier.get_data_target()
 model = classifier.get_model()
 
 try:
@@ -9,7 +9,7 @@ try:
 except:
     pass
 
-model.fit(X, Y, n_epoch=1000, validation_set=0.2, shuffle=True,
+model.fit(X, Y, n_epoch=1000, shuffle=True, validation_set=(X_test, Y_test),
                     show_metric=True, batch_size=64, snapshot_step=10,
                     snapshot_epoch=False, run_id='googlenet_oxflowers17')
 

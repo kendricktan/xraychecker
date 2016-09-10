@@ -6,14 +6,18 @@ import matplotlib.pyplot as plt
 import classifier 
 
 from flask import Flask, render_template, request, redirect, url_for, send_from_directory, jsonify
+from sklearn.metrics import classification_report
 from werkzeug import secure_filename
-from cStringIO import StringIO
+from sklearn.ensemble import RandomForestClassifier
 
-# our model
-model = classifier.get_model()
-model.load('model.ckpt')
 
 # Initialize the Flask application
+model = RandomForestClassifier(n_estimators = 33, criterion='entropy')
+X, Y, X_test, Y_test = classifier.get_data_target(TEST_DATA=True)
+model.fit(X, Y)
+
+print(classification_report(Y_test, model.predict(X_test), target_names = ['Normal', 'Abnormal']))
+
 app = Flask(__name__)
 
 app.config['UPLOAD_FOLDER'] = 'uploads/'
@@ -41,9 +45,15 @@ def index():
             img = classifier.normalize(img)
             img = classifier.describe(img)
 
-            result = model.predict([img])
+            result = model.predict(img)[0]
+            confidence = model.predict_proba(img)[0][result]
 
-            return jsonify(result)
+            my_type = 'normal'
+            # Fucking botching it
+            if confidence < 0.95:
+                my_type = 'abnormal'
+
+            return jsonify(result=result, confidence=confidence, type=my_type)
 
     return render_template('index.html')
 

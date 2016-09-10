@@ -10,25 +10,25 @@ from tflearn.layers.core import input_data, dropout, fully_connected
 from tflearn.layers.conv import conv_2d, max_pool_2d, avg_pool_2d
 from tflearn.layers.normalization import local_response_normalization
 from tflearn.layers.merge_ops import merge
+from sklearn import cross_validation
+
 from tflearn.layers.estimator import regression
 
 
 # Normalize image
 def normalize(image):
     #image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)    
-    image = cv2.resize(image, (227, 227), interpolation=cv2.INTER_CUBIC)    
-    #grey = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    image = cv2.resize(image, (250, 250), interpolation=cv2.INTER_CUBIC)    
+    grey = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     #ret2,th2 = cv2.threshold(grey.copy(),0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
-    return image
+    return grey 
 
 # Describe image 
-def describe(image, mask = None):
-    #hist = cv2.calcHist([image], [0], mask, [8], [0, 256])    
-    #cv2.normalize(hist, hist)    
-    return image
+def describe(image):
+    return image.flatten() 
 
 
-def get_data_target():
+def get_data_target(TEST_DATA=False):
     data = []
     target = []
 
@@ -41,7 +41,7 @@ def get_data_target():
 
         # Append to dataset
         data.append(features)
-        target.append([1, 0])
+        target.append(0)
 
     # Sort through abnormal images
     image_paths = sorted(glob.glob("dataset/abnormal/*.jpg"))
@@ -52,7 +52,7 @@ def get_data_target():
 
         # Append to dataset
         data.append(features)
-        target.append([0, 1])
+        target.append(1)
 
     # Shuffle our dataset
     NEW_INDICES = np.arange(len(target))
@@ -60,6 +60,10 @@ def get_data_target():
 
     data = [data[i] for i in NEW_INDICES]
     target = [target[i] for i in NEW_INDICES]
+
+    if TEST_DATA:
+        trainData, testData, trainTarget, testTarget = cross_validation.train_test_split(data, target, test_size=0.4)
+        return trainData, trainTarget, testData, testTarget
 
     return data, target
 
