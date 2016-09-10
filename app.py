@@ -3,10 +3,14 @@ import time
 import skimage.io as skio
 import numpy as np
 import matplotlib.pyplot as plt
+import classifier 
 
 from flask import Flask, render_template, request, redirect, url_for, send_from_directory, jsonify
 from werkzeug import secure_filename
 from cStringIO import StringIO
+
+# our model
+model = None
 
 # Initialize the Flask application
 app = Flask(__name__)
@@ -34,11 +38,12 @@ def index():
 
             img = skio.imread(filepath)
 
-            return jsonify(confidence=0.5)
+            return jsonify()
 
     return render_template('index.html')
 
 if __name__ == '__main__':
+
     app.run(
         host="0.0.0.0",
         port=int("8080"),
