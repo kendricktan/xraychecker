@@ -1,8 +1,12 @@
 import os
-import sklearn
+import time
+import skimage.io as skio
+import numpy as np
+import matplotlib.pyplot as plt
 
 from flask import Flask, render_template, request, redirect, url_for, send_from_directory, jsonify
 from werkzeug import secure_filename
+from cStringIO import StringIO
 
 # Initialize the Flask application
 app = Flask(__name__)
@@ -23,6 +27,13 @@ def index():
         file = request.files['file']
 
         if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            filename = secure_filename(file.filename)
+            file.save(filepath)
+
+            img = skio.imread(filepath)
+
             return jsonify(confidence=0.5)
 
     return render_template('index.html')
