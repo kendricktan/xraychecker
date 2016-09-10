@@ -1,3 +1,4 @@
+import json
 import os
 import time
 import skimage.io as skio
@@ -33,7 +34,15 @@ def allowed_file(filename):
 @app.route('/', methods=['POST', 'GET'])
 def index():
     if request.method == 'POST':
-        file = request.files['file']
+        try:
+            file = request.files['file']
+        except:
+            file = None
+
+        try:
+            data = request.form['url']
+        except:
+            data = None
 
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
@@ -50,7 +59,22 @@ def index():
 
             my_type = 'normal'
             # Fucking botching it
-            if confidence < 0.95:
+            if confidence < 0.90:
+                my_type = 'abnormal'
+
+            return jsonify(result=result, confidence=confidence, type=my_type)
+
+        if data:
+            img = skio.imread(data)
+            img = classifier.normalize(img)
+            img = classifier.describe(img)
+
+            result = model.predict(img)[0]
+            confidence = model.predict_proba(img)[0][result]
+
+            my_type = 'normal'
+            # Fucking botching it
+            if confidence < 0.90:
                 my_type = 'abnormal'
 
             return jsonify(result=result, confidence=confidence, type=my_type)
@@ -62,6 +86,7 @@ if __name__ == '__main__':
     app.run(
         host="0.0.0.0",
         port=int("8080"),
-        debug=True
+        debug=True,
+        threaded=True
     )
 
