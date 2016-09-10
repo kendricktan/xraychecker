@@ -10,7 +10,8 @@ from werkzeug import secure_filename
 from cStringIO import StringIO
 
 # our model
-model = None
+model = classifier.get_model()
+model.load('model.ckpt')
 
 # Initialize the Flask application
 app = Flask(__name__)
@@ -37,8 +38,12 @@ def index():
             file.save(filepath)
 
             img = skio.imread(filepath)
+            img = classifier.normalize(img)
+            img = classifier.describe(img)
 
-            return jsonify()
+            result = model.predict([img])
+
+            return jsonify(result)
 
     return render_template('index.html')
 
